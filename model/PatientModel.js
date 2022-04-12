@@ -26,13 +26,13 @@ const patientSchema = new mongoose.Schema({
         required: [true, 'Enter your password'],
         minlength: 8,
         maxlength: 12,
-        select: false
+        
     },
     passwordConfirm: {
         type: String,
         required: [true, 'The field is required!'],
-        // minlength: 8,
-        // maxlength: 12,
+        minlength: 8,
+        maxlength: 12,
         validate: {
             validator: function(el){
                 return el === this.password;
@@ -49,10 +49,10 @@ const patientSchema = new mongoose.Schema({
 
 //bcrypting the password
 patientSchema.pre('save', async function(next){
-    if(!this.isModified(password))
+    if(!this.isModified('password'))
     return next();
 
-this.password = await bcrypt.harsh(this.password, 12);
+this.password = await bcrypt.hash(this.password, 12);
 
 this.passwordConfirm = undefined;
 next();

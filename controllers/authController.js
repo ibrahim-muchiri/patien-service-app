@@ -3,27 +3,34 @@ const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Patient = require('./../model/PatientModel');
 const crypto = require('crypto');
+const sendEmail = require('./../utils/email');
 
-//const jwt = require('jsonWebToken');
+const jwt = require('jsonWebToken');
 
-// const asignToken = (id)=>{
-//     return jwt.sign({id}), process.env.JWT-SECRET, process.env.JWT-EXPIRES_IN
-// }
+const signToken = (id)=>{
+    return jwt.sign({ id }, process.env.JWT_SECRET, 
+    { expiresIn: process.env.JWT_EXPIRES_IN
+    })
+}
 
-exports.signUp = catchAsync(async(req, res, next)=>{
-    const newPatient = await Patient.create(req.body);
+exports.signUp = catchAsync(async (req, res, next)=>{
+    try{
+        const newPatient = await Patient.create(req.body);
         
-    //const token = asignToken(newPatient._id);
+    const token = signToken(newPatient._id);
 
     res.status(200).json({
         status: 'success',
-        //token,
+        token,
         data: {
             patient: newPatient
         }
       })
-    // next();
         
+    } catch(err){
+        console.log(err);
+    }
+    
 })
 
 exports.login = catchAsync(async(req, res, next)=>{   
@@ -44,7 +51,7 @@ exports.login = catchAsync(async(req, res, next)=>{
     }
 
     //3. log in user`
-    const token = asignToken(patient._id);
+    const token = signToken(patient._id);
     res.status(201).json({
         status: 'success',
         token,
@@ -75,7 +82,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     }
    
     //2) Verification of the token
-    const decoded = await promisify(jwt.verify)(token, process.env.JWT-SECRET);
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
     console.log(decoded);
     //3.) Check if the user still exist
     const freshPatient = await Patient.findById(decoded.id);
@@ -117,7 +124,7 @@ return (req, res, next) => {
     }
     //2.) Genetrate the random reset token
     const resetToken = patient.createPasswordResetToken();
-    await patient.save({ validateBeforeSave: false });
+     await patient.save({ validateBeforeSave: false });
    
     //3.) Send it to the user's email
     const resetURL = `${req.protocol}://${req.get(
@@ -125,31 +132,31 @@ return (req, res, next) => {
     )}/api/v1/patients/resetPassword/${resetToken}`;
    
     const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nif you didn't forget your password, please ignore this email `;
-   
-    // try {
-    //  await sendEmail({
-    //   email: customer.email,
-    //   subject: 'Your password reset token (valid for 10 min)',
-    //   message,
-    //  });
+    
+    try {
+     await sendEmail({
+      email: patient.email,
+      subject: 'Your password reset token (valid for 10 min)',
+      message
+     });
    
      res.status(200).json({
       status: 'success',
       message: 'Token sent to email',
      });
-    // }
-    //  catch (err) {
-    //  customer.passwordResetToken = undefined;
-    //  customer.passwordResetExpires = undefined;
-    //  await customer.save({ validateBeforeSave: false });
+    }
+     catch (err) {
+     patient.passwordResetToken = undefined;
+     patient.passwordResetExpires = undefined;     
+     await customer.save({ validateBeforeSave: false });
    
-    //  return next(
-    //   new AppError(
-    //    'There was an error sending the email, please try again later!'
-    //   ),
-    //   500
-    //  );
-    //}
+     return next(
+      new AppError(
+       'There was an error sending the email, please try again later!'
+      ),
+      500
+     );
+    }
    });
    
 

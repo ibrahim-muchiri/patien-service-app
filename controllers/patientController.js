@@ -3,7 +3,7 @@ const Patient = require('./../model/PatientModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 
-const router = express.Router();
+//const router = express.Router();
 
 exports.getAllPatient = catchAsync(async(req, res, next)=>{
     const patient = await Patient.find();
@@ -14,11 +14,11 @@ exports.getAllPatient = catchAsync(async(req, res, next)=>{
             patient
         }
     });
-    // next();
+    next();
 });
 
 exports.getPatient = catchAsync(async(req, res, next)=>{
-    const patient = await Patient.findById(req.params);
+    const patient = await Patient.findById(req.params.id);
 
     res.status(200).json({
         status: 'success',
@@ -29,8 +29,8 @@ exports.getPatient = catchAsync(async(req, res, next)=>{
     next();
 });
 
-exports.createPatient = catchAsync(async(req, res, next)=>{
-
+exports.createPatient = catchAsync(async (req, res, next)=>{
+try{
     const patient = await Patient.create(req.body);
 
     res.status(201).json({
@@ -39,7 +39,11 @@ exports.createPatient = catchAsync(async(req, res, next)=>{
             patient
         }
     });
-    // next();
+}catch (err){
+    console.log(err);
+}
+   
+    next();
 });
 
 exports.updatePatient = catchAsync(async(req, res, next)=>{
