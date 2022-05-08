@@ -19,7 +19,7 @@ const app = express();
 app.use(helmet());
 
 //
-if(process.env.NODE_ENV === 'davelopment'){
+if(process.env.NODE_ENV === 'development'){
     app.use(morgan('dev'));
 }
 
