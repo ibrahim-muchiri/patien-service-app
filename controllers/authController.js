@@ -39,9 +39,9 @@ exports.signUp = catchAsync(async (req, res, next)=>{
  
     const newPatient = await Patient.create(req.body);    
   
-    const url = `${req.protocol}://${req.get('host')}/me`;
-    console.log(url);
-    await new Email(newPatient, url).sendWelcome();
+    // const url = `${req.protocol}://${req.get('host')}/me`;
+    // console.log(url);
+    // await new Email(newPatient, url).sendWelcome();
 
     createSendToken(newPatient, 201, res);
 });
