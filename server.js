@@ -18,7 +18,8 @@ const DB = process.env.DATABASE_NAME.replace(
 mongoose.connect(DB, {
     useNewUrlParser:true,
     useUnifiedTopology:true,
-    useCreateIndex:true
+    useCreateIndex:true,
+    useFindAndModify: false
 }).then(()=> console.log('Database connected successfully...'))
 .catch(err => console.log(err));
 

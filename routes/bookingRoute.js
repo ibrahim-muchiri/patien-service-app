@@ -1,9 +1,8 @@
 const express = require('express');
-const { model } = require('mongoose');
-const bookingController = require('../controllers/patientController');
+const bookingController = require('../controllers/bookingController');
 const authController = require('./../controllers/authController');
 const router = express.Router();
 
-router.get('/chechout-session/:serviceId', authController.protect, bookingController.getCheckoutSession);
+router.get('/checkout-session/:serviceId', authController.protect, bookingController.getCheckoutSession);
 
-model.exports = router;
+module.exports = router;

@@ -1,3 +1,4 @@
+const AppError = require('../utils/appError');
 const Service = require('./../model/serviceModel');
 const catchAsync = require('./../utils/catchAsync');
 
@@ -15,8 +16,12 @@ exports.getAllService = catchAsync(async(req, res, next)=>{
 });
 
 exports.getService = catchAsync( async(req, res, next)=>{
-    const service = await Service.findById(req.body.params);
+    const service = await Service.findById(req.params.id);
 
+  
+  if(!service) {
+        return next(new AppError('No service with that Id', 404));
+    }
     res.status(200).json({
         status: 'success',
         data: {
@@ -27,19 +32,24 @@ exports.getService = catchAsync( async(req, res, next)=>{
 });
 
 exports.createService = catchAsync( async(req, res, next)=>{
-    const service = await Service.create(req.body);
+   
+        const service = await Service.create(req.body);   
 
-    res.status(201).json({
-        status: 'created',
-        data: {
-            service
-        }
-    });
+        res.status(201).json({
+            status: 'created',
+            data: {
+                service
+            }
+        });    
+    
     next();
-})
+});
 exports.updateService = catchAsync( async(req, res, next)=>{
-    const service = await Service.findByIdAndUpdate(req.body.params, req.body);
-  
+    const service = await Service.findByIdAndUpdate(req.params.id, req.body);
+
+    if(!service) {
+        return next(new AppError('No service with that Id', 404));
+    }
         res.status(201).json({
             status: 'Updated',
             data: {
@@ -49,7 +59,11 @@ exports.updateService = catchAsync( async(req, res, next)=>{
         next();  
 })
 exports.deleteService = catchAsync( async(req, res, next)=>{
-    const service = await Service.findByIdAndDelete(req.body.params);
+    const service = await Service.findByIdAndDelete(req.params.id);
+
+    if(!service) {
+        return next(new AppError('No service with that Id', 404));
+    }
 
     res.status(201).json({
         status: 'created',

@@ -3,37 +3,51 @@ const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Patient = require('./../model/PatientModel');
 const crypto = require('crypto');
-const sendEmail = require('./../utils/email');
-
+const Email = require('./../utils/email');
 const jwt = require('jsonWebToken');
 
-const signToken = (id)=>{
+const signToken = id=>{
     return jwt.sign({ id }, process.env.JWT_SECRET, 
     { expiresIn: process.env.JWT_EXPIRES_IN
-    })
-}
+    });
+};
+//COOKIES
+const createSendToken = (patient, statusCode, res)=>{
+const token = signToken(patient._id);
+
+// const cookieOptions = {
+//     expires: new Date(Date.now() + process.env.JWT_COOKIES_EXPIRES_IN *24*60*60*1000),
+
+//     httpOnly: true
+// };
+// if(process.env.NODE_ENV === 'production') cookieOptions.secure = true;   
+
+// res.cookies('jwt', token, cookieOptions);
+
+// patient.password =   undefined;
+
+res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+        patient
+    }
+});
+};
 
 exports.signUp = catchAsync(async (req, res, next)=>{
-    try{
-        const newPatient = await Patient.create(req.body);
-        
-    const token = signToken(newPatient._id);
+ 
+    const newPatient = await Patient.create(req.body);    
+  
+    const url = `${req.protocol}://${req.get('host')}/me`;
+    console.log(url);
+    await new Email(newPatient, url).sendWelcome();
 
-    res.status(200).json({
-        status: 'success',
-        token,
-        data: {
-            patient: newPatient
-        }
-      })
-        
-    } catch(err){
-        console.log(err);
-    }
-    
-})
+    createSendToken(newPatient, 201, res);
+});
 
-exports.login = catchAsync(async(req, res, next)=>{   
+exports.login = catchAsync(async(req, res, next)=>{ 
+   
         const {email, password} = req.body        
 
         //1.Check if the email and password exist
@@ -45,20 +59,11 @@ exports.login = catchAsync(async(req, res, next)=>{
 
     if (
      !patient ||
-     !(await patient.protectPassword(password, patient.password))
+     !(await patient.correctPassword(password, patient.password))
     ) {
      return next(new AppError('Incorrect password or email!', 401));
     }
-
-    //3. log in user`
-    const token = signToken(patient._id);
-    res.status(201).json({
-        status: 'success',
-        token,
-        data: {
-            patient
-        }
-    })
+    createSendToken(patient, 201, res);
 
 next();
    
@@ -115,10 +120,9 @@ return (req, res, next) => {
     };
    };
    
-
    exports.forgotPassword = catchAsync(async (req, res, next) => {
     //1.) Get user based on POsted email
-    const patient = await Patient.findOne({ email: req.body.email });
+        const patient = await Patient.findOne({ email: req.body.email });
     if (!patient) {
      return next(new AppError('There is no patient with that email address!', 404));
     }
@@ -131,45 +135,43 @@ return (req, res, next) => {
      'host'
     )}/api/v1/patients/resetPassword/${resetToken}`;
    
-    const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nif you didn't forget your password, please ignore this email `;
+    const message = `Forgot your password? Submit a PATCH request 
+    with your new password and passwordConfirm to: ${resetURL}.\nif you didn't forget your password, please ignore this email `;
+
     
     try {
-     await sendEmail({
-      email: patient.email,
-      subject: 'Your password reset token (valid for 10 min)',
-      message
-     });
+    //  await sendEmail({
+    //   email: patient.email,
+    //   subject: 'Your password reset token (valid for 10 min)',
+    //   message
+    //  });
    
      res.status(200).json({
       status: 'success',
       message: 'Token sent to email',
      });
-    }
-     catch (err) {
+    } catch (err) {
      patient.passwordResetToken = undefined;
      patient.passwordResetExpires = undefined;     
-     await customer.save({ validateBeforeSave: false });
+     await patient.save({ validateBeforeSave: false });
    
      return next(
       new AppError(
-       'There was an error sending the email, please try again later!'
-      ),
-      500
-     );
+       'There was an error sending the email, please try again later!', 500));
     }
    });
    
 
-   exports.resetPassword = catchAsync(async (req, res, next) => {
+   exports.resetPassword =  catchAsync(async (req, res, next) => {
     //1.Get user based on the token
     const hashedPassword = crypto
-     .createHash(sha256)
+     .createHash('sha256')
      .update(req.params.token)
-     .diget('Hex');
+     .digest('Hex');
    
     const patient = await Patient.findOne({
-     passwordResetToken: hashedPassword,
-     passwordResetExpires: { $gt: Date.now() },
+     passwordResetToken: hashedToken,
+     passwordResetExpires: { $gt: Date.now() }
     });
    
     //2. If token has not expired, there is a new user, send a new password
@@ -178,17 +180,39 @@ return (req, res, next) => {
     }
     const password = req.body.password;
     const confirmPassword = req.body.confirmPassword;
-    const passwordResetExpires = undefined;
     const passwordResetToken = undefined;
-    await customer.save();
+    const passwordResetExpires = undefined;
+    await patient.save();
    
     //3.
    
     //4. Log a patient in, send JWT
-    const token = signToken(patient._id);
-    res.status(200).json({
-     status: 'success',
-     token,
-    });
+    // const token = signToken(patient._id);
+    // res.status(200).json({
+    //  status: 'success', 
+    //  token,
+    // });
+    createSendToken(patient, 200, res);
    });
    
+exports.updatePassword = catchAsync( async(req, res, next)=>{
+    try{
+           //Find user from the collection
+const patient = await Patient.findById(req.patient.id);
+//Check if Posted current password is corect
+if(!(await user.correctPassword(req.body.passwordCurrent, patient.password)));
+return next(new AppError('Your current password is wrong', 401));
+//if so, update password
+patient.password = req.body.password;
+patient.passwordConfirm = req.body.passwordConfirm;
+return patient.save();
+//User.findByIdAndUpdate will not work as intended!
+createSendToken(patient, 200, res);
+
+    }catch(err){
+        console.log(err);
+    }
+ 
+
+next();
+});

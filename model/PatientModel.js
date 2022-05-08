@@ -1,6 +1,9 @@
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const validator = require('validator');
+const crypto = require('crypto');
+const uniqueValidator = require('mongoose-unique-validator');
+
 
 
 const patientSchema = new mongoose.Schema({
@@ -19,7 +22,8 @@ const patientSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['admin', 'patient', 'doctor', 'nurse']
+        enum: ['admin', 'patient', 'doctor', 'nurse'],
+        default: 'patient'
     },
     password: {
         type: String,
@@ -40,11 +44,14 @@ const patientSchema = new mongoose.Schema({
             message: 'please, password are not the same, check and try again',
         }
     },
-    passwordChangedAt: {
-        type: Date,
-    },
+    passwordChangedAt: Date,    
     passwordResetToken: String,
-    passwordResetExpires: Date
+    passwordResetExpires: Date,
+    active: {
+        type: Boolean,
+        default: true,
+        select: false
+    }
 });
 
 //bcrypting the password
@@ -57,8 +64,26 @@ this.password = await bcrypt.hash(this.password, 12);
 this.passwordConfirm = undefined;
 next();
 })
+
+patientSchema.pre(/^find/, function(next){
+    this.find({active: {$ne : false}});
+    next();
+})
+
+//validator
+patientSchema.plugin(uniqueValidator);
+
+//Reset token
+patientSchema.pre('save', function(next) {
+    if(!this.isModified('password') || this.isNew) return next();
+    
+    this.passwordChangedAt = Date.now() - 1000;
+    next();
+});
+
+
 //LOGIN method
-patientSchema.methods.protectPassword =async function(candidatePassword, patientPassword){
+patientSchema.methods.correctPassword =async function(candidatePassword, patientPassword){
     return await bcrypt.compare(candidatePassword, patientPassword);
 };
 
@@ -90,6 +115,7 @@ patientSchema.methods.createPasswordResetToken = function() {
    
     return resetToken;
    };
+
 
 const Patient = mongoose.model('Patient', patientSchema);
 
