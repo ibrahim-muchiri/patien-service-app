@@ -4,7 +4,7 @@ const AppError = require('./../utils/appError');
 const Patient = require('./../model/PatientModel');
 const crypto = require('crypto');
 const Email = require('./../utils/email');
-const jwt = require('jsonWebToken');
+const jwt = require('jsonwebtoken');
 
 const signToken = id=>{
     return jwt.sign({ id }, process.env.JWT_SECRET, 
