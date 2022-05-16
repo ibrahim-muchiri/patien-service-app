@@ -7,7 +7,7 @@ const AppError = require('./../utils/appError');
 
 exports.getCheckoutSession = catchAsync(async (req, res, next)=>{
     //Get the currently booked tour
-    try{
+  
         const service = await Service.findById(req.params.serviceId);
         // console.log(service);
         //create checkout session
@@ -35,10 +35,5 @@ exports.getCheckoutSession = catchAsync(async (req, res, next)=>{
       res.status(200).json({
           status: 'success',
           session
-      });
-   
-    }catch(err){
-        console.log(err);
-    }
- 
+      }); 
 });

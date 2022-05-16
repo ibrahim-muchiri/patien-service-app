@@ -4,8 +4,11 @@ const authController = require('./../controllers/authController');
 
 const router = express.Router();
 
-router.route('/').get(serviceController.getAllService).post(authController.protect, serviceController.createService);
+router.route('/').get(authController.protect, serviceController.getAllService)
+.post(authController.protect, authController.restrictTo('admin'), serviceController.createService);
 
-router.route('/:id').get(serviceController.getService).patch(authController.protect, authController.restrictTo('admin'), serviceController.updateService).delete(authController.protect, authController.restrictTo(), serviceController.deleteService);
+router.route('/:id').get(authController.protect, serviceController.getService)
+.patch(authController.protect, authController.restrictTo('admin'), serviceController.updateService)
+.delete(authController.protect, authController.restrictTo(), serviceController.deleteService);
 
 module.exports = router;
