@@ -9,6 +9,6 @@ router.route('/').get(authController.protect, serviceController.getAllService)
 
 router.route('/:id').get(authController.protect, serviceController.getService)
 .patch(authController.protect, authController.restrictTo('admin'), serviceController.updateService)
-.delete(authController.protect, authController.restrictTo(), serviceController.deleteService);
+.delete(authController.protect, authController.restrictTo('admin'), serviceController.deleteService);
 
 module.exports = router;
