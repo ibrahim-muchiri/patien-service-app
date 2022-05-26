@@ -1,7 +1,7 @@
 const cors = require('cors');
 const express = require('express');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limiter');
+const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongosanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
@@ -24,12 +24,15 @@ if(process.env.NODE_ENV === 'development'){
 }
 
 //Limit request from the same IP
-const Limiter = rateLimit({
+const apiLimiter = rateLimit({
+windowMs: 60 * 60 * 1000,
 max: 3,
-windowMS: 60*60*1000,
-message: 'Too many request from this IP, please try again after 1 hour'
+message:
+		'Too many request from this IP, please try again after an hour'
+// standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+// legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
-app.use('/api', Limiter);
+app.use('/api', apiLimiter);
 
 //body parser, reading data from body to req.body
 app.use(express.json({limit: '10kb'}));
