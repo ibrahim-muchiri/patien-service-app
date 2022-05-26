@@ -26,7 +26,7 @@ if(process.env.NODE_ENV === 'development'){
 //Limit request from the same IP
 const apiLimiter = rateLimit({
 windowMs: 60 * 60 * 1000,
-max: 3,
+max: 100,
 message:
 		'Too many request from this IP, please try again after an hour'
 // standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
