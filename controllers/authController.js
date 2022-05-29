@@ -126,6 +126,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 //        new AppError('You do not have a permission to perform this action', 403)
 //       );
 //      }
+
 //      next();
 //     };
 //    };
