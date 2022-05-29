@@ -59,7 +59,8 @@ exports.updateService = catchAsync( async(req, res, next)=>{
         // next();  
 })
 exports.deleteService = catchAsync( async(req, res, next)=>{
-    const service = await Service.findByIdAndDelete(req.params.id);
+    try{
+        const service = await Service.findByIdAndDelete(req.params.id);
 
     if(!service) {
         return next(new AppError('No service with that Id', 404));
@@ -67,9 +68,11 @@ exports.deleteService = catchAsync( async(req, res, next)=>{
 
     res.status(200).json({
         status: 'success',
-        data: {
-         service
-        },
+        message: 'deleted successfully'
        });
+    }catch(error){
+        console.log(error);
+    }
+    
     next();
 })
