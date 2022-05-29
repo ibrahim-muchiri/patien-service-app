@@ -68,11 +68,11 @@ exports.deleteService = catchAsync( async(req, res, next)=>{
 
     res.status(200).json({
         status: 'success',
-        message: 'deleted successfully'
+        data: null
        });
-    }catch(error){
+    } catch(error){
         console.log(error);
     }
     
     next();
-})
+});
