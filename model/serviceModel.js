@@ -18,7 +18,7 @@ const serviceSchema = new mongoose.Schema({
  },
  role: {
      type: String,
-     enum: ['admin', 'patient', 'doctor'],
+     enum: ['Admin', 'patient', 'doctor'],
      default: 'patient',
  },
  price: {
