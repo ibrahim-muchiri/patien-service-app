@@ -119,7 +119,7 @@ exports.updateMe = catchAsync(async(req, res, next) => {
     next();
 });
 exports.deleteMe =catchAsync(async(req, res, next)=>{
-    await Patient.findByIdAndUpdate(req.patient.id, {active: false});
+    await Patient.findByIdAndUUpdate(req.patient.id, {active: false});
 
     res.status(200).json({
         status: 'success',
