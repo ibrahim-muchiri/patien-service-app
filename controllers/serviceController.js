@@ -65,9 +65,11 @@ exports.deleteService = catchAsync( async(req, res, next)=>{
         return next(new AppError('No service with that Id', 404));
     }
 
-    res.status(201).json({
-        status: 'sucess',
-        message: 'Deleted successfully!'
-    });
+    res.status(200).json({
+        status: 'success',
+        data: {
+         doc: 'null',
+        },
+       });
     next();
 })
