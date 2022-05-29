@@ -57,7 +57,7 @@ exports.updateService = catchAsync( async(req, res, next)=>{
             }
         });  
         // next();  
-})
+});
 exports.deleteService = catchAsync( async(req, res, next)=>{
     try{
         const service = await Service.findByIdAndDelete(req.params.id);
