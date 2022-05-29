@@ -56,7 +56,7 @@ exports.updateService = catchAsync( async(req, res, next)=>{
                 service
             }
         });  
-        next();  
+        // next();  
 })
 exports.deleteService = catchAsync( async(req, res, next)=>{
     const service = await Service.findByIdAndDelete(req.params.id);
@@ -66,7 +66,7 @@ exports.deleteService = catchAsync( async(req, res, next)=>{
     }
 
     res.status(201).json({
-        status: 'created',
+        status: 'sucess',
         message: 'Deleted successfully!'
     });
     next();
